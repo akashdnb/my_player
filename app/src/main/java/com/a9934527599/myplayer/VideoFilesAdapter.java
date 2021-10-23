@@ -17,6 +17,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +38,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 public class VideoFilesAdapter extends RecyclerView.Adapter<VideoFilesAdapter.ViewHolder> {
     private ArrayList<MediaFiles> videoList;
@@ -48,6 +50,7 @@ public class VideoFilesAdapter extends RecyclerView.Adapter<VideoFilesAdapter.Vi
    // Uri ruri;
    // public int pos=0;
     ContentResolver contentResolver;
+    VideoFilesActivity activity = new VideoFilesActivity();
 
     public VideoFilesAdapter(ArrayList<MediaFiles> videoList, Context context) {
         this.videoList = videoList;
@@ -109,6 +112,10 @@ public class VideoFilesAdapter extends RecyclerView.Adapter<VideoFilesAdapter.Vi
                                @RequiresApi(api = Build.VERSION_CODES.R)
                                @Override
                                public void onClick(DialogInterface dialog, int which) {
+                                   if (TextUtils.isEmpty(editText.getText().toString())){
+                                       Toast.makeText(context, "Can't rename empty file", Toast.LENGTH_SHORT).show();
+                                       return;
+                                   }
                                    String OnlyPath= file.getParentFile().getAbsolutePath();
                                    String ext= file.getAbsolutePath();
                                    ext= ext.substring(ext.lastIndexOf("."));
@@ -121,22 +128,26 @@ public class VideoFilesAdapter extends RecyclerView.Adapter<VideoFilesAdapter.Vi
                                    File file= new File(videoList.get(position).getPath());
 
                                    if (file.renameTo(newFile)){
-                                       contentResolver= context.getContentResolver();
-                                       contentResolver.delete(contentUri,null,null);
-                                       Intent intent=new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                                       intent.setData(Uri.fromFile(newFile));
-                                       context.getApplicationContext().sendBroadcast(intent);
-
+                                       if (path.equals(newPath)){
+                                       }else {
+                                           contentResolver= context.getContentResolver();
+                                           contentResolver.delete(contentUri,null,null);
+                                           Intent intent=new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                                           intent.setData(Uri.fromFile(newFile));
+                                           context.getApplicationContext().sendBroadcast(intent);
+                                       }
                                        SystemClock.sleep(20);
                                        ((Activity)context).recreate();
+                                       VideoFilesActivity.getInstance().showVideoFiles();
                                        notifyDataSetChanged();
-                                       notifyItemChanged(position);
-                                       notifyItemInserted(position);
+                                       notifyItemRemoved(position);
+                                       notifyItemInserted(0);
                                        dialog.dismiss();
-
-                                       Toast.makeText(context, "Vide Renamed", Toast.LENGTH_SHORT).show();
+                                       Toast.makeText(context, "Video Renamed", Toast.LENGTH_SHORT).show();
                                    }
+                                   VideoFilesActivity.getInstance().showVideoFiles();
                                }
+
                            });
                            alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                @Override
@@ -190,7 +201,8 @@ public class VideoFilesAdapter extends RecyclerView.Adapter<VideoFilesAdapter.Vi
                                         notifyItemRemoved(position);
                                         notifyItemRangeChanged(position, videoList.size());
                                         notifyDataSetChanged();
-                                        ((Activity)context).recreate();
+                                        VideoFilesActivity.getInstance().showVideoFiles();
+                                       // ((Activity)context).recreate();
                                         Toast.makeText(context, "Deleted", Toast.LENGTH_SHORT).show();
                                     }else {
                                         Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show();
@@ -377,4 +389,11 @@ public class VideoFilesAdapter extends RecyclerView.Adapter<VideoFilesAdapter.Vi
         return videoTime;
     }
 
+    void updateVideoFiles(ArrayList<MediaFiles> files){
+        videoList = new ArrayList<>();
+        for (MediaFiles mediaFiles: files){
+            videoList.add(mediaFiles);
+        }
+        notifyDataSetChanged();
+    }
 }
