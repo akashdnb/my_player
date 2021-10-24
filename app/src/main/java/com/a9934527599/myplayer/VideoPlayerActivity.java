@@ -1,6 +1,7 @@
 package com.a9934527599.myplayer;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
 import android.net.Uri;
@@ -46,6 +47,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     ImageView nextButton,prevButton;
     private View decrorView;
 
+    //hriznta recycer view variabes
+    RecyclerView horizontalRV;
+    private  ArrayList<iconModel> iconModelArrayList= new ArrayList<>();
+    PlaybackItemsAdapter  playbackItemsAdapter;
+
+    //hriznta recycer view variabes
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +87,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         title= findViewById(R.id.video_title);
         title.setText(videoTitle);
 
+        horizontalRV = findViewById(R.id.recyclerView_icons);
+
         videoBack.setOnClickListener(this);
         unlock.setOnClickListener(this);
         lock.setOnClickListener(this);
@@ -91,6 +100,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     private void playVideo() throws Exception {

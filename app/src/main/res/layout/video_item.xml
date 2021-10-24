@@ -62,6 +62,7 @@
             android:textColor="@color/LIGHT_DARK_COLOR"/>
     </LinearLayout>
 
+
     <ImageView
         android:id="@+id/video_menu_more"
         android:layout_width="wrap_content"
@@ -73,8 +74,6 @@
         android:layout_marginRight="10dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:foregroundTint="@color/LIGHT_DARK_COLOR"
-        android:src="@drawable/ic_more_vert_b"
-        app:srcCompat="@drawable/ic_more_vert_b"
-        tools:ignore="VectorDrawableCompat" />
+        android:src="@drawable/ic_more_vert_b" />
 
 </RelativeLayout>

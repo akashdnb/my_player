@@ -77,9 +77,9 @@ public class folderActivity extends AppCompatActivity {
     private ArrayList<MediaFiles> fetchMedia() {
         ArrayList<MediaFiles> mediaFilesArrayList=new ArrayList<>();
         Uri uri= MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        String sortorder= "MediaStore.Video.Media.DISPLAY_NAME ASC";
+        String sortorder= MediaStore.Video.Media.DATE_ADDED+" ASC";
 
-        Cursor cursor= getContentResolver().query(uri,null,null,null,null);
+        Cursor cursor= getContentResolver().query(uri,null,null,null,sortorder);
         if(cursor!=null && cursor.moveToNext()){
             do{
                 String  id= cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
