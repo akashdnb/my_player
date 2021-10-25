@@ -14,7 +14,8 @@
         android:theme="@style/Theme.MYPLAYER">
         <activity
             android:name=".VideoPlayerActivity"
-            android:configChanges="orientation|screenSize|layoutDirection" />
+            android:configChanges="orientation|screenSize|layoutDirection"
+            />
         <activity android:name=".VideoFilesActivity"
             android:parentActivityName=".folderActivity"/>
         <activity android:name=".folderActivity" />

@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Display;
 import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.Window;
@@ -65,16 +66,18 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     ConcatenatingMediaSource concatenatingMediaSource;
     ImageView nextButton,prevButton;
     private View decrorView;
-    private Context context;
+    private Context context= this;
 
     //hriznta recycer view variabes
     RecyclerView recyclerView_icons;
     private  ArrayList<iconModel> iconModelArrayList= new ArrayList<>();
     PlaybackItemsAdapter  playbackItemsAdapter;
+    OrientationEventListener morientationEventListener;
     boolean expand = false;
     View night_mde;
     boolean dark = false;
     boolean mute= false;
+
     PlaybackParameters parameters;
     float speed=1.0f;
 
@@ -309,7 +312,29 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void autoRotate() {
-
+         morientationEventListener= new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
+                    @Override
+                    public void onOrientationChanged(int orientation) {
+                        switch (orientation){
+                            case Configuration.ORIENTATION_LANDSCAPE:
+                              //  Toast.makeText(VideoPlayerActivity.this, "0", Toast.LENGTH_SHORT).show();
+                                break;
+                            case 90:
+                                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+                                break;
+                            case 180:
+                               // Toast.makeText(VideoPlayerActivity.this, "180", Toast.LENGTH_SHORT).show();
+                                break;
+                            case 270:
+                                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                                break;
+                            case 360:
+                               // Toast.makeText(VideoPlayerActivity.this, "360", Toast.LENGTH_SHORT).show();
+                                break;
+                        }
+                    }
+                };
+        morientationEventListener.enable();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
@@ -349,6 +374,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        morientationEventListener.disable();
         if(player.isPlaying()){
             player.stop();
         }
@@ -357,6 +383,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onPause() {
         super.onPause();
+        morientationEventListener.disable();
         player.setPlayWhenReady(false);
         player.getPlaybackState();
     }
@@ -364,6 +391,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onResume() {
         super.onResume();
+        morientationEventListener.enable();
         player.setPlayWhenReady(true);
         player.getPlaybackState();
     }
@@ -371,13 +399,27 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onRestart() {
         super.onRestart();
+        morientationEventListener.enable();
         player.setPlayWhenReady(true);
         player.getPlaybackState();
     }
+
     private void setFullScreen(){
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
        // this.getWindow().setAttributes(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        morientationEventListener.disable();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        morientationEventListener.disable();
     }
 
     @Override
