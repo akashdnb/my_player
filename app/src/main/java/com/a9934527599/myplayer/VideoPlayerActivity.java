@@ -77,6 +77,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     View night_mde;
     boolean dark = false;
     boolean mute= false;
+    boolean portrait = false;
 
     PlaybackParameters parameters;
     float speed=1.0f;
@@ -316,21 +317,22 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                     @Override
                     public void onOrientationChanged(int orientation) {
                         switch (orientation){
-                            case Configuration.ORIENTATION_LANDSCAPE:
-                              //  Toast.makeText(VideoPlayerActivity.this, "0", Toast.LENGTH_SHORT).show();
+                            case 0:
+                              if (portrait)
+                                  setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                                 break;
                             case 90:
                                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
                                 break;
-                            case 180:
-                               // Toast.makeText(VideoPlayerActivity.this, "180", Toast.LENGTH_SHORT).show();
-                                break;
+//                            case 180:
+//                               // Toast.makeText(VideoPlayerActivity.this, "180", Toast.LENGTH_SHORT).show();
+//                                break;
                             case 270:
                                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                                 break;
-                            case 360:
-                               // Toast.makeText(VideoPlayerActivity.this, "360", Toast.LENGTH_SHORT).show();
-                                break;
+//                            case 360:
+//                               // Toast.makeText(VideoPlayerActivity.this, "360", Toast.LENGTH_SHORT).show();
+//                                break;
                         }
                     }
                 };
@@ -351,10 +353,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
             int vidWidth = bitmap.getWidth();
             int vidHeight = bitmap.getHeight();
             if (vidHeight<vidWidth){
+                portrait=false;
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             }else {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
+                portrait= true;
             }
         }catch (Exception e){
             Toast.makeText(this, "Exceptin  "+e, Toast.LENGTH_SHORT).show();
