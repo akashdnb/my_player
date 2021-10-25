@@ -57,8 +57,10 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView_icons"
+            android:orientation="horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
             android:layout_below="@id/toolbar"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"/>

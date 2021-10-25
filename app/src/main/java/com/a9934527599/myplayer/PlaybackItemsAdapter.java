@@ -16,6 +16,15 @@ public class PlaybackItemsAdapter extends RecyclerView.Adapter<PlaybackItemsAdap
 
     ArrayList<iconModel> iconModelList;
     private Context context;
+    private OnItemClickListener mListener;
+
+    public interface OnItemClickListener{
+        void onItemClick(int position);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener){
+        mListener = listener;
+    }
 
     public PlaybackItemsAdapter(ArrayList<iconModel> iconModelList, Context context) {
         this.iconModelList = iconModelList;
@@ -26,12 +35,13 @@ public class PlaybackItemsAdapter extends RecyclerView.Adapter<PlaybackItemsAdap
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
        View view= LayoutInflater.from(context).inflate(R.layout.icons_layout,parent,false);
-        return new ViewHolder(view);
+        return new ViewHolder(view, mListener);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.img_View.setImageResource(iconModelList.get(position).getImg());
+       // holder.img_View.setImageResource(R.drawable.ic_lock);
         holder.title_View.setText(iconModelList.get(position).getTitel());
     }
 
@@ -43,10 +53,22 @@ public class PlaybackItemsAdapter extends RecyclerView.Adapter<PlaybackItemsAdap
     public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView img_View;
         TextView title_View;
-        public ViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView,OnItemClickListener listener) {
             super(itemView);
-            img_View= itemView.findViewById(R.id.recyclerView_icons);
+            img_View= itemView.findViewById(R.id.playback_icons);
             title_View= itemView.findViewById(R.id.icon_title);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listener!=null){
+                        int pstn = getAdapterPosition();
+                        if (pstn != RecyclerView.NO_POSITION){
+                            listener.onItemClick(pstn);
+
+                        }
+                    }
+                }
+            });
         }
     }
 }

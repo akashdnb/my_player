@@ -1,11 +1,26 @@
 package com.a9934527599.myplayer;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.hardware.SensorDirectChannel;
+import android.hardware.SensorManager;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -16,6 +31,7 @@ import android.widget.Toast;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
@@ -26,8 +42,10 @@ import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
+import java.io.Console;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class VideoPlayerActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -40,6 +58,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     String videoTitle;
     TextView title;
     private  ControlsMode controlsMode;
+
     public enum ControlsMode{
         LOCK,FULLSCREEN;
     }
@@ -48,11 +67,23 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     private View decrorView;
 
     //hriznta recycer view variabes
-    RecyclerView horizontalRV;
+    RecyclerView recyclerView_icons;
     private  ArrayList<iconModel> iconModelArrayList= new ArrayList<>();
     PlaybackItemsAdapter  playbackItemsAdapter;
+    boolean expand = false;
+    View night_mde;
+    boolean dark = false;
+    boolean mute= false;
+    PlaybackParameters parameters;
+    float speed=1.0f;
 
-    //hriznta recycer view variabes
+    //hriznta recycer view variabes rotationListenerHelper
+
+    public interface rotationCallbackFn{
+        void onRtationChanged(int lastRotation, int newRotation);
+    }
+    private rotationListenerHelper rotationListenerHelper= null;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +104,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         position=getIntent().getIntExtra("position",1);
         videoTitle=getIntent().getStringExtra("Video_title");
         mVideoFiles= getIntent().getExtras().getParcelableArrayList("videoArrayList");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            screen_orientation();
+        }
+
 
         videoBack= findViewById(R.id.video_back);
         lock= findViewById(R.id.exo_lock);
@@ -87,13 +122,159 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         title= findViewById(R.id.video_title);
         title.setText(videoTitle);
 
-        horizontalRV = findViewById(R.id.recyclerView_icons);
+        recyclerView_icons = findViewById(R.id.recyclerView_icons);
+        night_mde=findViewById(R.id.night_mde);
+        parameters= new PlaybackParameters(speed);
 
         videoBack.setOnClickListener(this);
         unlock.setOnClickListener(this);
         lock.setOnClickListener(this);
 
         scaling.setOnClickListener(firstListener);
+
+        iconModelArrayList.add(new iconModel(R.drawable.ic_right," "));
+        iconModelArrayList.add(new iconModel(R.drawable.ic_dark,"Night"));
+        iconModelArrayList.add(new iconModel(R.drawable.ic_volume,"Mute"));
+        iconModelArrayList.add(new iconModel(R.drawable.ic_rotate,"Rotate"));
+
+        playbackItemsAdapter= new PlaybackItemsAdapter(iconModelArrayList,this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this,
+               RecyclerView.HORIZONTAL,true);
+        recyclerView_icons.setLayoutManager(layoutManager);
+        recyclerView_icons.setAdapter(playbackItemsAdapter);
+        playbackItemsAdapter.notifyDataSetChanged();
+
+        playbackItemsAdapter.setOnItemClickListener(new PlaybackItemsAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                if (position== 0){
+                    if (expand){
+                    iconModelArrayList.clear();
+                    iconModelArrayList.add(new iconModel(R.drawable.ic_right," "));
+                    iconModelArrayList.add(new iconModel(R.drawable.ic_dark,"Night"));
+                    iconModelArrayList.add(new iconModel(R.drawable.ic_volume_off,"Mute"));
+                    iconModelArrayList.add(new iconModel(R.drawable.ic_rotate,"Rotate"));
+                    playbackItemsAdapter.notifyDataSetChanged();
+                        expand=false;
+                    }
+                    else {
+
+                        if (iconModelArrayList.size()==4){
+                            iconModelArrayList.add(new iconModel(R.drawable.ic_volume_off,"Volume"));
+                            iconModelArrayList.add(new iconModel(R.drawable.ic_brightness,"Brightness"));
+                            iconModelArrayList.add(new iconModel(R.drawable.ic_speed,"Speed"));
+                            iconModelArrayList.add(new iconModel(R.drawable.ic_subtitles,"Subtitles"));
+                        }
+                        iconModelArrayList.set(position,new iconModel(R.drawable.ic_left,""));
+                        playbackItemsAdapter.notifyDataSetChanged();
+                        expand=true;
+                    }
+                }
+                if (position== 1)
+                {
+                    if (!dark){
+                        night_mde.setVisibility(View.VISIBLE);
+                        iconModelArrayList.set(position,new iconModel(R.drawable.ic_dark,"Night"));
+                        playbackItemsAdapter.notifyDataSetChanged();
+                        dark=true;
+                    }else {
+                        night_mde.setVisibility(View.GONE);
+                        iconModelArrayList.set(position,new iconModel(R.drawable.ic_dark,"Day"));
+                        playbackItemsAdapter.notifyDataSetChanged();
+                        dark=false;
+                    }
+                }
+                if (position== 2)
+                {
+                    if (!mute){
+                        player.setVolume(0);
+                        iconModelArrayList.set(position,new iconModel(R.drawable.ic_volume_off,"Unmute"));
+                        playbackItemsAdapter.notifyDataSetChanged();
+                        mute=true;
+                    }else {
+                        player.setVolume(100);
+                        iconModelArrayList.set(position, new iconModel(R.drawable.ic_volume, "Mute"));
+                        playbackItemsAdapter.notifyDataSetChanged();
+                        mute = false;
+                    }
+                }
+                if (position== 3)
+                {
+                    if (getResources().getConfiguration().orientation== Configuration.ORIENTATION_PORTRAIT){
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                        playbackItemsAdapter.notifyDataSetChanged();
+                    }else if (getResources().getConfiguration().orientation== Configuration.ORIENTATION_LANDSCAPE){
+                            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                            playbackItemsAdapter.notifyDataSetChanged();
+                        }
+
+                    }
+                if (position== 4)
+                {
+                    Toast.makeText(VideoPlayerActivity.this, "frth", Toast.LENGTH_SHORT).show();
+                }
+                if (position== 5)
+                {
+                    Toast.makeText(VideoPlayerActivity.this, "fifth", Toast.LENGTH_SHORT).show();
+                }
+
+                if (position== 6)
+                {
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(VideoPlayerActivity.this);
+                    alertDialog.setTitle("Select Playback speed").setPositiveButton("kk",null);
+                   // alertDialog.setPositiveButton()
+                    String[] items = {"0.5x",".75x","1x Nrma Speed","1.25x","1.5x","2x"};
+                    int checkedItem = -1;
+                    alertDialog.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            switch (which){
+                                case 0:
+                                    speed = 0.5f;
+                                    parameters= new PlaybackParameters(speed);
+                                    player.setPlaybackParameters(parameters);
+                                    break;
+                                case 1:
+                                    speed = 0.75f;
+                                    parameters= new PlaybackParameters(speed);
+                                    player.setPlaybackParameters(parameters);
+                                    break;
+                                case 2:
+                                    parameters= new PlaybackParameters(speed);
+                                    player.setPlaybackParameters(parameters);
+                                    speed = 1.0f;
+                                    break;
+                                case 3:
+                                    parameters= new PlaybackParameters(speed);
+                                    player.setPlaybackParameters(parameters);
+                                    speed = 1.25f;
+                                    break;
+                                case 4:
+                                    parameters= new PlaybackParameters(speed);
+                                    player.setPlaybackParameters(parameters);
+                                    speed = 1.5f;
+                                    break;
+                                case 5:
+                                    parameters= new PlaybackParameters(speed);
+                                    player.setPlaybackParameters(parameters);
+                                    speed = 2.0f;
+                                    break;
+                                default:
+                                    parameters= new PlaybackParameters(speed);
+                                    player.setPlaybackParameters(parameters);
+                            }
+                        }
+                    });
+                    AlertDialog alert = alertDialog.create();
+                    alert.show();
+                }
+            }
+        });
+        if (position== 7)
+        {
+            Toast.makeText(VideoPlayerActivity.this, "Sixth", Toast.LENGTH_SHORT).show();
+        }
+
 
         try {
             playVideo();
@@ -120,10 +301,54 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
 
         playerView.setPlayer(player);
         playerView.setKeepScreenOn(true);
+        player.setPlaybackParameters(parameters);
         player.prepare(concatenatingMediaSource);
         player.seekTo(position, C.TIME_UNSET);
         playError();
 
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+    private void screen_orientation(){
+        try {
+
+            MediaMetadataRetriever retriever= new MediaMetadataRetriever();
+            Bitmap bitmap;
+            String path = mVideoFiles.get(position).getPath();
+            Uri uri=Uri.parse(path);
+            retriever.setDataSource(this,uri);
+            bitmap= retriever.getFrameAtTime();
+
+            int vidWidth = bitmap.getWidth();
+            int vidHeight = bitmap.getHeight();
+            if (vidHeight<vidWidth){
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
+                final int curOrientation = getWindowManager().getDefaultDisplay().getRotation();
+                switch (curOrientation){
+                    case 3:
+                        Toast.makeText(context, "Reversed", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+                rotationListenerHelper = new rotationListenerHelper();
+                rotationListenerHelper.listen(context,rotationCV);
+//                OrientationEventListener morientationEventListener =
+//                        new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
+//                            @Override
+//                            public void onOrientationChanged(int orientation) {
+//                                if (orientation==0) {
+//                                    Toast.makeText(VideoPlayerActivity.this, "reversed",
+//                                            Toast.LENGTH_SHORT).show();
+//                                }
+//                            }
+//                        };
+            }else {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+            }
+        }catch (Exception e){
+            Toast.makeText(this, "Exceptin  "+e, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void playError() {
@@ -268,4 +493,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
             scaling.setOnClickListener(firstListener);
         }
     };
+    private rotationCallbackFn rotationCV= new rotationCallbackFn() {
+        @Override
+        public void onRtationChanged(int lastRotation, int newRotation) {
+            Toast.makeText(context, "changed "+lastRotation +"\n"+ newRotation,
+                    Toast.LENGTH_SHORT).show();
+
+        }
+    };
+    
 }

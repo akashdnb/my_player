@@ -24,4 +24,11 @@
         app:controller_layout_id="@layout/custom_playback_view"
         >
     </com.google.android.exoplayer2.ui.PlayerView>
+
+    <View
+        android:id="@+id/night_mde"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/LIGHT_DARK_COLOR"
+        android:visibility="gone"/>
 </RelativeLayout>

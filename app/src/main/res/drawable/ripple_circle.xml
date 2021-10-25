@@ -3,5 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:color="@color/SKY_BLUE"
     tools:ignore="NewApi">
+
 <item android:drawable="@drawable/circle"/>
 </ripple>
