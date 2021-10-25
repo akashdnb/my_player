@@ -65,6 +65,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     ConcatenatingMediaSource concatenatingMediaSource;
     ImageView nextButton,prevButton;
     private View decrorView;
+    private Context context;
 
     //hriznta recycer view variabes
     RecyclerView recyclerView_icons;
@@ -78,12 +79,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     float speed=1.0f;
 
     //hriznta recycer view variabes rotationListenerHelper
-
-    public interface rotationCallbackFn{
-        void onRtationChanged(int lastRotation, int newRotation);
-    }
-    private rotationListenerHelper rotationListenerHelper= null;
-    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -240,24 +235,24 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                                     player.setPlaybackParameters(parameters);
                                     break;
                                 case 2:
+                                    speed = 1.0f;
                                     parameters= new PlaybackParameters(speed);
                                     player.setPlaybackParameters(parameters);
-                                    speed = 1.0f;
                                     break;
                                 case 3:
+                                    speed = 1.25f;
                                     parameters= new PlaybackParameters(speed);
                                     player.setPlaybackParameters(parameters);
-                                    speed = 1.25f;
                                     break;
                                 case 4:
+                                    speed = 1.5f;
                                     parameters= new PlaybackParameters(speed);
                                     player.setPlaybackParameters(parameters);
-                                    speed = 1.5f;
                                     break;
                                 case 5:
+                                    speed = 2.0f;
                                     parameters= new PlaybackParameters(speed);
                                     player.setPlaybackParameters(parameters);
-                                    speed = 2.0f;
                                     break;
                                 default:
                                     parameters= new PlaybackParameters(speed);
@@ -305,6 +300,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         player.prepare(concatenatingMediaSource);
         player.seekTo(position, C.TIME_UNSET);
         playError();
+        try {
+            autoRotate();
+        }catch (Exception e){
+            Toast.makeText(context, "rotate err", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    private void autoRotate() {
 
     }
 
@@ -323,25 +327,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
             int vidHeight = bitmap.getHeight();
             if (vidHeight<vidWidth){
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-
-                final int curOrientation = getWindowManager().getDefaultDisplay().getRotation();
-                switch (curOrientation){
-                    case 3:
-                        Toast.makeText(context, "Reversed", Toast.LENGTH_SHORT).show();
-                        break;
-                }
-                rotationListenerHelper = new rotationListenerHelper();
-                rotationListenerHelper.listen(context,rotationCV);
-//                OrientationEventListener morientationEventListener =
-//                        new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
-//                            @Override
-//                            public void onOrientationChanged(int orientation) {
-//                                if (orientation==0) {
-//                                    Toast.makeText(VideoPlayerActivity.this, "reversed",
-//                                            Toast.LENGTH_SHORT).show();
-//                                }
-//                            }
-//                        };
             }else {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
@@ -491,14 +476,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
             scaling.setImageResource(R.drawable.ic_fit);
             Toast.makeText(VideoPlayerActivity.this, "fit", Toast.LENGTH_SHORT).show();
             scaling.setOnClickListener(firstListener);
-        }
-    };
-    private rotationCallbackFn rotationCV= new rotationCallbackFn() {
-        @Override
-        public void onRtationChanged(int lastRotation, int newRotation) {
-            Toast.makeText(context, "changed "+lastRotation +"\n"+ newRotation,
-                    Toast.LENGTH_SHORT).show();
-
         }
     };
     
