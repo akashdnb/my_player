@@ -188,4 +188,27 @@
         android:visibility="gone"
         android:scaleType="centerInside"
         android:background="@drawable/ripple_circle"/>
+
+    <LinearLayout
+        android:id="@+id/asdf"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        tools:ignore="InvalidId">
+
+        <LinearLayout
+            android:id="@+id/left"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="horizontal"></LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/right"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="horizontal"></LinearLayout>
+
+    </LinearLayout>
 </RelativeLayout>

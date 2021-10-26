@@ -21,12 +21,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Display;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -68,6 +72,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     private View decrorView;
     private Context context= this;
 
+    //seekbar variabes
+    LinearLayout s_bar;
+    View left, right;
+    SeekBar seekBarVol;
+    TextView vText;
+    ImageView vImage;
+    GestureDetector gestureDetector;
+    //seekbar variabes
+
     //hriznta recycer view variabes
     RecyclerView recyclerView_icons;
     private  ArrayList<iconModel> iconModelArrayList= new ArrayList<>();
@@ -81,7 +94,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
 
     PlaybackParameters parameters;
     float speed=1.0f;
-
+    int checkedItem = 2;
     //hriznta recycer view variabes rotationListenerHelper
 
     @Override
@@ -107,7 +120,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
             screen_orientation();
         }
 
-
         videoBack= findViewById(R.id.video_back);
         lock= findViewById(R.id.exo_lock);
         unlock= findViewById(R.id.unlock);
@@ -124,6 +136,25 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         recyclerView_icons = findViewById(R.id.recyclerView_icons);
         night_mde=findViewById(R.id.night_mde);
         parameters= new PlaybackParameters(speed);
+
+        //seekbar
+      //  left= findViewById(R.id.left);
+       // right= findViewById(R.id.right);
+        s_bar=findViewById(R.id.s_bar);
+        seekBarVol=s_bar.findViewById(R.id.seekBar);
+        vText= s_bar.findViewById(R.id.progress_text);
+
+        gestureDetector=new GestureDetector(this, new MyGestureListener());
+
+        View.OnTouchListener touchListener= new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return gestureDetector.onTouchEvent(event);
+            }
+        };
+      // left.setOnTouchListener(touchListener);
+      //  right.setOnTouchListener(touchListener);
+        //seekbar
 
         videoBack.setOnClickListener(this);
         unlock.setOnClickListener(this);
@@ -216,14 +247,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                 {
                     Toast.makeText(VideoPlayerActivity.this, "fifth", Toast.LENGTH_SHORT).show();
                 }
-
                 if (position== 6)
                 {
                     AlertDialog.Builder alertDialog = new AlertDialog.Builder(VideoPlayerActivity.this);
                     alertDialog.setTitle("Select Playback speed").setPositiveButton("kk",null);
                    // alertDialog.setPositiveButton()
                     String[] items = {"0.5x",".75x","1x Nrma Speed","1.25x","1.5x","2x"};
-                    int checkedItem = -1;
+
                     alertDialog.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -232,31 +262,37 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                                     speed = 0.5f;
                                     parameters= new PlaybackParameters(speed);
                                     player.setPlaybackParameters(parameters);
+                                    checkedItem=0;
                                     break;
                                 case 1:
                                     speed = 0.75f;
                                     parameters= new PlaybackParameters(speed);
                                     player.setPlaybackParameters(parameters);
+                                    checkedItem=1;
                                     break;
                                 case 2:
                                     speed = 1.0f;
                                     parameters= new PlaybackParameters(speed);
                                     player.setPlaybackParameters(parameters);
+                                    checkedItem=2;
                                     break;
                                 case 3:
                                     speed = 1.25f;
                                     parameters= new PlaybackParameters(speed);
                                     player.setPlaybackParameters(parameters);
+                                    checkedItem=3;
                                     break;
                                 case 4:
                                     speed = 1.5f;
                                     parameters= new PlaybackParameters(speed);
                                     player.setPlaybackParameters(parameters);
+                                    checkedItem=4;
                                     break;
                                 case 5:
                                     speed = 2.0f;
                                     parameters= new PlaybackParameters(speed);
                                     player.setPlaybackParameters(parameters);
+                                    checkedItem=5;
                                     break;
                                 default:
                                     parameters= new PlaybackParameters(speed);
@@ -267,13 +303,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                     AlertDialog alert = alertDialog.create();
                     alert.show();
                 }
+                if (position== 7)
+                {
+                    Toast.makeText(VideoPlayerActivity.this, "Sixth", Toast.LENGTH_SHORT).show();
+                }
             }
         });
-        if (position== 7)
-        {
-            Toast.makeText(VideoPlayerActivity.this, "Sixth", Toast.LENGTH_SHORT).show();
-        }
-
 
         try {
             playVideo();
@@ -523,5 +558,52 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
             scaling.setOnClickListener(firstListener);
         }
     };
-    
+
+    class MyGestureListener extends GestureDetector.SimpleOnGestureListener{
+
+        public static final int SWIPE_THRESD=100;
+        public static final int SWIPE_VECITY_THRESD=100;
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            s_bar.setVisibility(View.GONE);
+            return super.onSingleTapUp(e);
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            try {
+                float diffY= e2.getY()- e1.getY();
+                float diffX= e2.getX()- e1.getX();
+                if (SWIPE_THRESD< Math.abs(diffY) && Math.abs(diffX)<250){
+                    updateVolume(diffY);
+                   // Toast.makeText(context, ""+e1+"\n"+e2, Toast.LENGTH_SHORT).show();
+                }
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            return true;
+        }
+
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            //Toast.makeText(context, "onDoubleTap", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+    }
+    public void updateVolume(float diffY){
+        int progress= seekBarVol.getProgress() - (int) diffY/70;
+        if (progress>100)
+            progress=100;
+        else if (progress<0)
+            progress=0;
+        s_bar.setVisibility(View.VISIBLE);
+        seekBarVol.setProgress(Math.abs(progress));
+    }
 }

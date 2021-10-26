@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/progress_text"
+        android:layout_width="32dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:text="18"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:gravity="center"/>
+
+    <FrameLayout
+        android:layout_width="32dp"
+        android:layout_height="220dp"
+        >
+
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="220dp"
+            android:layout_height="32dp"
+            android:indeterminate="false"
+            android:progress="18"
+            android:layout_gravity="center"
+            android:rotation="270"/>
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="5dp"
+        app:srcCompat="@drawable/ic_volume"
+        tools:ignore="VectorDrawableCompat" />
+
+
+</LinearLayout>
