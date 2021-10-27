@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,11 +16,15 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.hardware.SensorDirectChannel;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.Layout;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -51,6 +56,7 @@ import java.io.Console;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Timer;
 
 public class VideoPlayerActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -73,11 +79,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     private Context context= this;
 
     //seekbar variabes
-    LinearLayout s_bar;
-    View left, right;
-    SeekBar seekBarVol;
-    TextView vText;
-    ImageView vImage;
+    LinearLayout s_bar,s_bar_brightness;
+    SeekBar seekBarVol,seekBarBright;
+    TextView vText,bText;
+    ImageView vImage,bImage;
+    AudioManager audioManager;
     GestureDetector gestureDetector;
     //seekbar variabes
 
@@ -137,12 +143,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         night_mde=findViewById(R.id.night_mde);
         parameters= new PlaybackParameters(speed);
 
-        //seekbar
-      //  left= findViewById(R.id.left);
-       // right= findViewById(R.id.right);
+        //seekbar custom_back
         s_bar=findViewById(R.id.s_bar);
         seekBarVol=s_bar.findViewById(R.id.seekBar);
-        vText= s_bar.findViewById(R.id.progress_text);
+        vText= s_bar.findViewById(R.id.vText);
+        vImage= s_bar.findViewById(R.id.vImage);
 
         gestureDetector=new GestureDetector(this, new MyGestureListener());
 
@@ -152,8 +157,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                 return gestureDetector.onTouchEvent(event);
             }
         };
-      // left.setOnTouchListener(touchListener);
-      //  right.setOnTouchListener(touchListener);
+        playerView.setOnTouchListener(touchListener);
         //seekbar
 
         videoBack.setOnClickListener(this);
@@ -570,9 +574,27 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         }
 
         @Override
-        public boolean onSingleTapUp(MotionEvent e) {
+        public boolean onSingleTapConfirmed(MotionEvent e) {
             s_bar.setVisibility(View.GONE);
-            return super.onSingleTapUp(e);
+
+                try {
+                    if (playerView.isControllerVisible())
+                        playerView.hideController();
+                    else if (s_bar.getVisibility()==View.GONE){
+                        playerView.showController();
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                playerView.hideController();
+                            }
+                        },4000);
+                    }
+
+                }catch (Exception exception){
+                    Toast.makeText(context, ""+exception, Toast.LENGTH_SHORT).show();
+                }
+
+            return true;
         }
 
         @Override
@@ -581,8 +603,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                 float diffY= e2.getY()- e1.getY();
                 float diffX= e2.getX()- e1.getX();
                 if (SWIPE_THRESD< Math.abs(diffY) && Math.abs(diffX)<250){
+
+                    if ((getResources().getConfiguration().orientation== Configuration.ORIENTATION_LANDSCAPE
+                    && e1.getX()>1100)||(getResources().getConfiguration().orientation== Configuration.ORIENTATION_PORTRAIT
+                    && e1.getX()>550))
                     updateVolume(diffY);
-                   // Toast.makeText(context, ""+e1+"\n"+e2, Toast.LENGTH_SHORT).show();
+                    else
+                        updateBrightness(diffY);
+                   // Log.i("getX", String.valueOf(e1.getX()));2200 && 1100
+                   // Log.i("diffY", String.valueOf(diffY));
                 }
 
             }catch (Exception e){
@@ -597,13 +626,57 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
             return true;
         }
     }
+
+    private void updateBrightness(float diffY) {
+       // Toast.makeText(context, "brightness", Toast.LENGTH_SHORT).show();
+    }
+
     public void updateVolume(float diffY){
-        int progress= seekBarVol.getProgress() - (int) diffY/70;
+
+        audioManager= (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        int mediaVol= audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int maxVol= audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int setVol= (int) Math.ceil(mediaVol*maxVol/100);
+
+        int progress= seekBarVol.getProgress() - (int) diffY/150;
         if (progress>100)
             progress=100;
-        else if (progress<0)
+        else if (progress<=0){
             progress=0;
+            vImage.setImageResource(R.drawable.ic_volume_off);
+        }else
+        vImage.setImageResource(R.drawable.ic_volume);
+
         s_bar.setVisibility(View.VISIBLE);
         seekBarVol.setProgress(Math.abs(progress));
+        vText.setText(String.valueOf(Math.abs(progress)));
+
+        seekBarVol.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+                int maxV= audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+                int setVol= (int) Math.ceil(progress*maxV/100);
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,setVol,0);
+                seekBarVol.setProgress(Math.abs(progress));
+               // Toast.makeText(VideoPlayerActivity.this, ""+maxV, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                new Handler().postDelayed(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        s_bar.setVisibility(View.GONE);
+                    }
+                },4000);
+            }
+        });
     }
 }
