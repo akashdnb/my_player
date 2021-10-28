@@ -11,6 +11,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -22,6 +23,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.text.Layout;
 import android.text.TextUtils;
 import android.util.Log;
@@ -63,7 +65,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     ArrayList<MediaFiles> mVideoFiles=new ArrayList<>();
     PlayerView playerView;
     SimpleExoPlayer player;
-    ImageView videoBack, lock,unlock,scaling;
+    ImageView videoBack, lock,unlock,scaling,rew,ffwd;
     RelativeLayout root;
     int position;
     String videoTitle;
@@ -84,7 +86,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     TextView vText,bText;
     ImageView vImage,bImage;
     AudioManager audioManager;
-    int vProgress,bProgress;
+    int vProgress,bProgress,perBrightness;
     GestureDetector gestureDetector;
     //seekbar variabes
 
@@ -97,7 +99,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     View night_mde;
     boolean dark = false;
     boolean mute= false;
-    boolean portrait = false;
+    boolean portrait = false,islock=false;
 
     PlaybackParameters parameters;
     float speed=1.0f;
@@ -131,6 +133,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         lock= findViewById(R.id.exo_lock);
         unlock= findViewById(R.id.unlock);
         scaling = findViewById(R.id.exo_sca);
+        rew= findViewById(R.id.exo_rew);
+        ffwd= findViewById(R.id.exo_ffwd);
         root=findViewById(R.id.root_layout);
 
         nextButton=findViewById(R.id.exo_next);
@@ -154,6 +158,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         vImage= s_bar.findViewById(R.id.vImage);
         bImage= s_bar_brightness.findViewById(R.id.vImage);
 
+        seekBarBright.setMax(255);
+        int brightness = Settings.System.getInt(getApplicationContext().getContentResolver(),
+                Settings.System.SCREEN_BRIGHTNESS,0);
+        perBrightness=brightness;
         audioManager= (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         int mediaVol= audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         int maxVol= audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
@@ -189,18 +197,59 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
+                int mediaVol= audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                int maxVol= audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+                int setVol= (int) Math.ceil((((double) mediaVol/(double) maxVol)*100));
+                vText.setText(String.valueOf(setVol));
+                seekBarVol.setProgress(setVol);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        s_bar.setVisibility(View.GONE);
+                    }
+                },3000);
+            }
+        });
+
+        seekBarBright.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                boolean canWrite= Settings.System.canWrite(getApplicationContext());
+                if (canWrite){
+                    int sBrightness= progress*255/255;
+                    bText.setText(sBrightness+"");
+                    Settings.System.putInt(context.getContentResolver(),
+                            Settings.System.SCREEN_BRIGHTNESS_MODE,
+                            Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
+                    Settings.System.putInt(context.getContentResolver(),
+                            Settings.System.SCREEN_BRIGHTNESS,sBrightness);
+                }else {
+                    Toast.makeText(context, "unabe t Write", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                    intent.setData(Uri.parse("package:"+ context.getPackageName()));
+                    startActivityForResult(intent,0);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
 
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 new Handler().postDelayed(new Runnable() {
-
                     @Override
                     public void run() {
-                        s_bar.setVisibility(View.GONE);
+                        s_bar_brightness.setVisibility(View.GONE);
                     }
-                },4000);
+                },3000);
             }
         });
         //seekbar
@@ -462,6 +511,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     public void onBackPressed() {
         super.onBackPressed();
         morientationEventListener.disable();
+        changeBrightnessDefaut();
         if(player.isPlaying()){
             player.stop();
         }
@@ -470,6 +520,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onPause() {
         super.onPause();
+        changeBrightnessDefaut();
         morientationEventListener.disable();
         player.setPlayWhenReady(false);
         player.getPlaybackState();
@@ -500,12 +551,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onStop() {
         super.onStop();
+        changeBrightnessDefaut();
         morientationEventListener.disable();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        changeBrightnessDefaut();
         morientationEventListener.disable();
     }
 
@@ -544,6 +597,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                 controlsMode = controlsMode.LOCK;
                 root.setVisibility(View.INVISIBLE);
                 lock.setVisibility(View.VISIBLE);
+                islock=true;
                // Toast.makeText(this, "locked", Toast.LENGTH_SHORT).show();
                 break;
 
@@ -551,6 +605,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                 controlsMode = controlsMode.FULLSCREEN;
                 root.setVisibility(View.VISIBLE);
                 lock.setVisibility(View.INVISIBLE);
+                islock=false;
                // Toast.makeText(this, "UNlocked", Toast.LENGTH_SHORT).show();
                 break;
 
@@ -615,6 +670,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
 
         @Override
         public boolean onDown(MotionEvent e) {
+            audioManager= (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+            int mediaVol= audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+            int maxVol= audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            int setVol= (int) Math.ceil((((double) mediaVol/(double) maxVol)*100));
+            vText.setText(String.valueOf(setVol));
+            seekBarVol.setProgress(setVol);
+
             return true;
         }
 
@@ -644,6 +706,17 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         }
 
         @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            audioManager= (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+            int mediaVol= audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+            int maxVol= audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            int setVol= (int) Math.ceil((((double) mediaVol/(double) maxVol)*100));
+            vText.setText(String.valueOf(setVol));
+            seekBarVol.setProgress(setVol);
+            return true;
+        }
+
+        @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             try {
                 float diffY= e2.getY()- e1.getY();
@@ -653,12 +726,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                     if ((getResources().getConfiguration().orientation== Configuration.ORIENTATION_LANDSCAPE
                     && e1.getX()>1100)||(getResources().getConfiguration().orientation== Configuration.ORIENTATION_PORTRAIT
                     && e1.getX()>550)) {
-                        s_bar.setVisibility(View.VISIBLE);
+                        if (!islock){
+                            s_bar.setVisibility(View.VISIBLE);
 
-                        s_bar_brightness.setVisibility(View.GONE);
-                        updateVolume(diffY);
+                            s_bar_brightness.setVisibility(View.GONE);
+                            updateVolume(diffY);
+                        }
                     }
-                    else {
+                    else if(!islock){
                         updateBrightness(diffY);
                         s_bar.setVisibility(View.GONE);
                         // Log.i("getX", String.valueOf(e1.getX()));2200 && 1100
@@ -673,6 +748,31 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         }
 
         @Override
+        public boolean onDoubleTapEvent(MotionEvent e) {
+            int x= (int) e.getX();
+            try {
+                    if ((getResources().getConfiguration().orientation== Configuration.ORIENTATION_LANDSCAPE
+                            && x>1100)||(getResources().getConfiguration().orientation== Configuration.ORIENTATION_PORTRAIT
+                            && x>550)) {
+                        if (!islock){
+                            player.seekTo(player.getCurrentPosition()+5000);
+                            s_bar_brightness.setVisibility(View.GONE);
+                            s_bar.setVisibility(View.GONE);
+                        }
+                    }
+                    else if(!islock){
+                        player.seekTo(player.getCurrentPosition()-5000);
+                        s_bar.setVisibility(View.GONE);
+                        s_bar.setVisibility(View.GONE);
+                    }
+
+            }catch (Exception exception){
+                exception.printStackTrace();
+            }
+            return true;
+        }
+
+        @Override
         public boolean onDoubleTap(MotionEvent e) {
             //Toast.makeText(context, "onDoubleTap", Toast.LENGTH_SHORT).show();
             return true;
@@ -681,9 +781,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
 
     private void updateBrightness(float diffY) {
 
-        bProgress= seekBarBright.getProgress() - (int) diffY/150;
-        if (bProgress>100)
-            bProgress=100;
+        bProgress= seekBarBright.getProgress() - (int) diffY/110;
+        if (bProgress>255){
+            bProgress=255;
+        }
+        else if (bProgress<33)
+            bProgress=33;
         else if (bProgress<=0){
             bProgress=0;
             bImage.setImageResource(R.drawable.ic_brightness_low);
@@ -692,13 +795,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
 
         s_bar_brightness.setVisibility(View.VISIBLE);
         seekBarBright.setProgress(Math.abs(bProgress));
-        bText.setText(String.valueOf(Math.abs(bProgress)));
-       // Toast.makeText(context, "brightness", Toast.LENGTH_SHORT).show();
+        int perc= (int)(((double)bProgress/255)*100);
+        //double dff=((double)bProgress/255);
+        bText.setText(String.valueOf(Math.abs(perc)));
+       // Toast.makeText(context, "brightness ", Toast.LENGTH_SHORT).show();
     }
 
     public void updateVolume(float diffY){
 
-         vProgress= seekBarVol.getProgress() - (int) diffY/150;
+         vProgress= seekBarVol.getProgress() - (int) diffY/180;
         if (vProgress>100)
             vProgress=100;
         else if (vProgress<=0){
@@ -711,5 +816,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         seekBarVol.setProgress(Math.abs(vProgress));
         vText.setText(String.valueOf(Math.abs(vProgress)));
 
+    }
+    public void changeBrightnessDefaut(){
+        try {
+            Settings.System.putInt(context.getContentResolver(),
+                    Settings.System.SCREEN_BRIGHTNESS_MODE,
+                    Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
+            Settings.System.putInt(context.getContentResolver(),
+                    Settings.System.SCREEN_BRIGHTNESS,perBrightness);
+        }catch (Exception exception){}
     }
 }
