@@ -721,14 +721,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
             try {
                 float diffY= e2.getY()- e1.getY();
                 float diffX= e2.getX()- e1.getX();
-                if (SWIPE_THRESD< Math.abs(diffY) && Math.abs(diffX)<250){
+                if ((SWIPE_THRESD< Math.abs(diffY) && Math.abs(diffX)<250)
+                        &&(Math.abs(diffX)<Math.abs(diffY))){
 
                     if ((getResources().getConfiguration().orientation== Configuration.ORIENTATION_LANDSCAPE
                     && e1.getX()>1100)||(getResources().getConfiguration().orientation== Configuration.ORIENTATION_PORTRAIT
                     && e1.getX()>550)) {
                         if (!islock){
                             s_bar.setVisibility(View.VISIBLE);
-
                             s_bar_brightness.setVisibility(View.GONE);
                             updateVolume(diffY);
                         }
@@ -736,8 +736,22 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                     else if(!islock){
                         updateBrightness(diffY);
                         s_bar.setVisibility(View.GONE);
-                        // Log.i("getX", String.valueOf(e1.getX()));2200 && 1100
-                        // Log.i("diffY", String.valueOf(diffY));
+                        s_bar_brightness.setVisibility(View.VISIBLE);
+
+                    }
+                }
+                else if ((SWIPE_THRESD< Math.abs(diffX) && Math.abs(diffY)<250)
+                        &&(Math.abs(diffY)<Math.abs(diffX))){
+                    if ((diffX>0)&&(!islock)) {
+
+                            s_bar.setVisibility(View.GONE);
+                            s_bar_brightness.setVisibility(View.GONE);
+                            player.seekTo(player.getCurrentPosition()+3000);
+                    }
+                    else if((diffX<0)&&(!islock)){
+                        s_bar.setVisibility(View.GONE);
+                        s_bar_brightness.setVisibility(View.GONE);
+                        player.seekTo(player.getCurrentPosition()-3000);
                     }
                 }
 
