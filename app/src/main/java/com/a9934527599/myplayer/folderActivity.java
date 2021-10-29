@@ -38,6 +38,8 @@ public class folderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_folder);
 
+        getSupportActionBar().setBackgroundDrawable(getDrawable(R.color.SKY_BLUE));
+
       //  if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (!Environment.isExternalStorageManager()){
@@ -106,6 +108,7 @@ public class folderActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.folder_menu,menu);
+
         return super.onCreateOptionsMenu(menu);
     }
 

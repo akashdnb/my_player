@@ -59,6 +59,9 @@ public class VideoFilesActivity extends AppCompatActivity implements SearchView.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_files);
         instance=this;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getSupportActionBar().setBackgroundDrawable(getDrawable(R.color.SKY_BLUE));
+        }
 
         folder_path= getIntent().getStringExtra("folderPath");
 

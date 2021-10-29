@@ -2,6 +2,8 @@
     <!-- Base application theme. -->
     <style name="Theme.MYPLAYER" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
+        <item name="android:itemBackground">@color/white</item>
+        <item name="android:textColor">@color/black</item>
         <item name="colorPrimary">@color/SKY_BLUE</item>
         <item name="colorPrimaryVariant">@color/SKY_BLUE</item>
         <item name="colorOnPrimary">@color/white</item>
