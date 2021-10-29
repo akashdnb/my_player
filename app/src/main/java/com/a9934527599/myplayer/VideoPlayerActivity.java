@@ -168,15 +168,28 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         int setVol= (int) Math.ceil((((double) mediaVol/(double) maxVol)*100));
         vText.setText(String.valueOf(setVol));
         seekBarVol.setProgress(setVol);
-       //
-       // seekBarVol.setProgress((int) (Math.abs((mediaVol/maxVol)*100)));
-      // vProgress=(int) Math.abs((mediaVol/maxVol)*100);
+
 
         gestureDetector=new GestureDetector(this, new MyGestureListener());
 
         View.OnTouchListener touchListener= new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+
+               // Toast.makeText(context, ""+event.getActionMasked(), Toast.LENGTH_SHORT).show();
+                if ((event.getActionMasked()==MotionEvent.ACTION_UP)
+                        ||((event.getActionMasked()==MotionEvent.ACTION_DOWN))){
+                    Log.i("event", String.valueOf(event.getAction()));
+                    new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        s_bar.setVisibility(View.GONE);
+                        s_bar_brightness.setVisibility(View.GONE);
+
+                    }
+                },3000);
+                }
+
                 return gestureDetector.onTouchEvent(event);
             }
         };
@@ -207,12 +220,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        s_bar.setVisibility(View.GONE);
-                    }
-                },3000);
+//                new Handler().postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        s_bar.setVisibility(View.GONE);
+//                    }
+//                },3000);
             }
         });
 
@@ -244,12 +257,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        s_bar_brightness.setVisibility(View.GONE);
-                    }
-                },3000);
+//                new Handler().postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        s_bar_brightness.setVisibility(View.GONE);
+//                    }
+//                },3000);
             }
         });
         //seekbar
@@ -684,18 +697,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         public boolean onSingleTapConfirmed(MotionEvent e) {
             s_bar.setVisibility(View.GONE);
             s_bar_brightness.setVisibility(View.GONE);
-
                 try {
-                    if (playerView.isControllerVisible())
-                        playerView.hideController();
+                    if (playerView.isControllerVisible()){
+                          playerView.hideController();
+                        //playerView.setControllerShowTimeoutMs(4000);
+                    }
                     else if (s_bar.getVisibility()==View.GONE){
                         playerView.showController();
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                playerView.hideController();
-                            }
-                        },4000);
+                        playerView.setControllerShowTimeoutMs(4000);
                     }
 
                 }catch (Exception exception){
@@ -746,12 +755,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
 
                             s_bar.setVisibility(View.GONE);
                             s_bar_brightness.setVisibility(View.GONE);
-                            player.seekTo(player.getCurrentPosition()+3000);
+                            player.seekTo(player.getCurrentPosition()+2500);
                     }
                     else if((diffX<0)&&(!islock)){
                         s_bar.setVisibility(View.GONE);
                         s_bar_brightness.setVisibility(View.GONE);
-                        player.seekTo(player.getCurrentPosition()-3000);
+                        player.seekTo(player.getCurrentPosition()-2500);
                     }
                 }
 
@@ -785,12 +794,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
             }
             return true;
         }
-
-        @Override
-        public boolean onDoubleTap(MotionEvent e) {
-            //Toast.makeText(context, "onDoubleTap", Toast.LENGTH_SHORT).show();
-            return true;
-        }
     }
 
     private void updateBrightness(float diffY) {
@@ -799,8 +802,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         if (bProgress>255){
             bProgress=255;
         }
-        else if (bProgress<33)
-            bProgress=33;
         else if (bProgress<=0){
             bProgress=0;
             bImage.setImageResource(R.drawable.ic_brightness_low);
@@ -810,9 +811,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         s_bar_brightness.setVisibility(View.VISIBLE);
         seekBarBright.setProgress(Math.abs(bProgress));
         int perc= (int)(((double)bProgress/255)*100);
-        //double dff=((double)bProgress/255);
         bText.setText(String.valueOf(Math.abs(perc)));
-       // Toast.makeText(context, "brightness ", Toast.LENGTH_SHORT).show();
     }
 
     public void updateVolume(float diffY){
