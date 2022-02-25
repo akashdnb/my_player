@@ -63,6 +63,7 @@ public class VideoFilesActivity extends AppCompatActivity implements SearchView.
             getSupportActionBar().setBackgroundDrawable(getDrawable(R.color.SKY_BLUE));
         }
 
+
         folder_path= getIntent().getStringExtra("folderPath");
 
         int indexPath=folder_path.lastIndexOf("/");

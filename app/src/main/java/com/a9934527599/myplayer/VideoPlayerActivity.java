@@ -65,11 +65,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
     ArrayList<MediaFiles> mVideoFiles=new ArrayList<>();
     PlayerView playerView;
     SimpleExoPlayer player;
-    ImageView videoBack, lock,unlock,scaling,rew,ffwd;
+    ImageView videoBack, lock,unlock,scaling,rew,ffwd,ffwd_effect,rew_effect;
     RelativeLayout root;
     int position;
     String videoTitle;
-    TextView title;
+    TextView title,ffwd_text,rew_text;
     private  ControlsMode controlsMode;
 
     public enum ControlsMode{
@@ -82,6 +82,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
 
     //seekbar variabes
     LinearLayout s_bar,s_bar_brightness;
+    Layout back_effect;
     SeekBar seekBarVol,seekBarBright;
     TextView vText,bText;
     ImageView vImage,bImage;
@@ -149,6 +150,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         parameters= new PlaybackParameters(speed);
 
         //seekbar custom_back
+       // back_effect= (findViewById(R.id.back_ef).findViewById(R.id.)
         s_bar=findViewById(R.id.s_bar);
         s_bar_brightness= findViewById(R.id.s_bar_brightness);
         seekBarVol=s_bar.findViewById(R.id.seekBar);
