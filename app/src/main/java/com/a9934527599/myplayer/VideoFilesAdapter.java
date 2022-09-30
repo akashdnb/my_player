@@ -221,7 +221,7 @@ public class VideoFilesAdapter extends RecyclerView.Adapter<VideoFilesAdapter.Vi
                             bottomSheetDialog.dismiss();
                         }
                         else {
-                            Toast.makeText(context, "Permissin Required", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, "Permission Required", Toast.LENGTH_SHORT).show();
                             bottomSheetDialog.dismiss();
                         }
                     }

@@ -245,7 +245,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                     Settings.System.putInt(context.getContentResolver(),
                             Settings.System.SCREEN_BRIGHTNESS,sBrightness);
                 }else {
-                    Toast.makeText(context, "unabe t Write", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "unable to Write", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
                     intent.setData(Uri.parse("package:"+ context.getPackageName()));
                     startActivityForResult(intent,0);
@@ -363,9 +363,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                 if (position== 6)
                 {
                     AlertDialog.Builder alertDialog = new AlertDialog.Builder(VideoPlayerActivity.this);
-                    alertDialog.setTitle("Select Playback speed").setPositiveButton("kk",null);
+                    alertDialog.setTitle("Select Playback speed").setPositiveButton("Ok",null);
                    // alertDialog.setPositiveButton()
-                    String[] items = {"0.5x",".75x","1x Nrma Speed","1.25x","1.5x","2x"};
+                    String[] items = {"0.5x","0.75x","1x Normal Speed","1.25x","1.5x","2x"};
 
                     alertDialog.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
                         @Override
@@ -508,7 +508,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                 portrait= true;
             }
         }catch (Exception e){
-            Toast.makeText(this, "Exceptin  "+e, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Exception  "+e, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -516,7 +516,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         player.addListener(new Player.EventListener() {
             @Override
             public void onPlayerError(ExoPlaybackException error) {
-                Toast.makeText(VideoPlayerActivity.this,"Video playing Error",Toast.LENGTH_SHORT).show();
+                Toast.makeText(VideoPlayerActivity.this,"Video playing Error!!",Toast.LENGTH_SHORT).show();
             }
         });
         player.setPlayWhenReady(true);
@@ -586,7 +586,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                     position++;
                     playVideo();
                 }catch (Exception e){
-                    Toast.makeText(this,"no Next Video",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this,"No Next Video",Toast.LENGTH_SHORT).show();
                     finish();
                 }
                 break;
@@ -596,7 +596,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
                         position--;
                         playVideo();
                     }catch (Exception e){
-                        Toast.makeText(this,"no Previus Video",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this,"No Previous Video",Toast.LENGTH_SHORT).show();
                         finish();
                     }
                 break;

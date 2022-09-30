@@ -147,7 +147,7 @@ public class VideoFilesActivity extends AppCompatActivity implements SearchView.
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode==111&& grantResults[0]==PackageManager.PERMISSION_GRANTED){
-            Toast.makeText(this, "\nPermissin Granted", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "\nPermission Granted", Toast.LENGTH_SHORT).show();
         }
         else {
             boolean ratinabe= shouldShowRequestPermissionRationale(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
@@ -214,8 +214,8 @@ public class VideoFilesActivity extends AppCompatActivity implements SearchView.
                         dialog.dismiss();
                     }
                 });
-                String[] items = {"Name (A to Z)", "Size (Big to Sma)", "Date (New to Old)" ,
-                        "Length (Long to Short)"};
+                String[] items = {"Name (A to Z)", "Size (Small to Big)", "Date (New to Old)" ,
+                        "Length (Short to Long)"};
                 alertDialog.setSingleChoiceItems(items, -1, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

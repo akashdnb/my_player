@@ -32,7 +32,7 @@ public class allowAcessActivity extends AppCompatActivity {
         SharedPreferences shared= getSharedPreferences("AllowAccess",MODE_PRIVATE);
         String value= shared.getString("Allow","");
 
-        if(value.equals("ok")){
+        if(value.equals("Ok")){
             startActivity(new Intent(allowAcessActivity.this, folderActivity.class));
             finish();
         }
@@ -47,7 +47,7 @@ public class allowAcessActivity extends AppCompatActivity {
                 if (Environment.isExternalStorageManager()) {
 
                     SharedPreferences.Editor editor= shared.edit();
-                    editor.putString("Allow","ok");
+                    editor.putString("Allow","Ok");
                     editor.apply();
                     startActivity(new Intent(allowAcessActivity.this, folderActivity.class));
                     finish();
@@ -71,7 +71,7 @@ public class allowAcessActivity extends AppCompatActivity {
                 if (Environment.isExternalStorageManager()){
                     SharedPreferences shared= getSharedPreferences("AllowAccess",MODE_PRIVATE);
                     SharedPreferences.Editor editor= shared.edit();
-                    editor.putString("Allow","ok");
+                    editor.putString("Allow","Ok");
                     editor.apply();
                     startActivity(new Intent(allowAcessActivity.this, folderActivity.class));
                     finish();
@@ -81,7 +81,7 @@ public class allowAcessActivity extends AppCompatActivity {
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(this);
                         builder.setTitle("App Permission")
-                                .setMessage("For Plying videos, you must allow this app to acess video files on your device"
+                                .setMessage("For Playing videos, you must allow this app to access video files on your device"
                                         + "\n\n" + "Now follow the following steps" + "\n\n" + "Open Settings from below Button" + "\n"
                                         + "Click on Permissions"
                                         + "\n" + "Allow access for storage")

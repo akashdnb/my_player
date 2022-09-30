@@ -132,7 +132,7 @@ public class folderActivity extends AppCompatActivity {
                         "https://play.google.com/store/apps/dtails?id="
                                 +getApplicationContext().getPackageName());
                 share_intent.setType("text/plain");
-                startActivity(Intent.createChooser(share_intent,"Share appvia"));
+                startActivity(Intent.createChooser(share_intent,"Share app via"));
                 break;
         }
         return true;
